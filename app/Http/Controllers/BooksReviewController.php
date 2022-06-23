@@ -45,7 +45,7 @@ class BooksReviewController extends Controller
         DB::beginTransaction();
         try {
             $id = $book->id;
-            dd($id);
+            // dd($id);
             $review = Book::find($id);
             $review->delete();
             DB::commit();
