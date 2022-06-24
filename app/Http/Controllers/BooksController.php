@@ -28,6 +28,33 @@ class BooksController extends Controller
         if (!empty($input['title']))
             $book->where('title','like','%'.$input['title'].'%');
 
+        if (isset($input['authors'])) {
+            $authors = (strpos($input['authors'],',')!== false ) ? explode(',',$input['authors'] ) : [$input['authors']];
+            $book->whereHas('authors', function($q)use ($authors){
+                $q->whereIn('author_id', $authors );
+            });
+
+        }
+
+        if (isset($input['sortColumn'])) {
+
+
+            $sortDirection = (isset($input['sortDirection'])&& strtoupper( $input['sortDirection']) == 'DESC')?  'DESC': 'asc';
+
+
+            if ($input['sortColumn']=='avg_review')
+            {
+                $book->withCount(['reviews as review_average' => function($query) {
+                    $query->select(DB::raw('coalesce(avg(review),0)'));
+                }])->orderBy('review_average',$sortDirection);
+
+            }
+            else {
+
+                $book->OrderBy( $input['sortColumn'],$sortDirection );
+            }
+        }
+
         return BookResource::collection($book->paginate() );
     }
 
